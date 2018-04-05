@@ -16,36 +16,8 @@ using namespace std;
 
 enum ASTNodeType {TYPE_ADD,TYPE_MINUS,TYPE_MUL,TYPE_DIV,TYPE_POWER,TYPE_VALUE};
 
-
-struct fraction {
-    long numerator;
-    long denominator;
-
-    fraction operator + (const fraction& x) const {
-        
-    }
-
-    fraction operator + (const fraction& x) const {
-        
-    }
-
-    fraction operator + (const fraction& x) const {
-        
-    }
-
-    fraction operator + (const fraction& x) const {
-    
-    }
-
-    bool operator == (const fraction& x) const {
-        
-    }
-
-};
-
-
 struct ASTNode {
-
+    
 };
 
 void Calc(const string& in) {
