@@ -205,10 +205,42 @@ struct ASTNode {
     union {
         fraction frac;
         double real;
-        pair<shared_ptr<ASTNode>,shared_ptr<ASTNode>> node;                
+        pair<ASTNode*,ASTNode*> node;                
     } data;
+
+    ASTNode(){
+        type = TYPE_DOUBLE;
+        data.real = 0;
+    }
+
+    ~ASTNode(){
+        if(type!=TYPE_FRACTION&&type!=TYPE_DOUBLE){
+            delete data.node._1;
+            delete data.node._2;
+        }
+    }
 };
 
+
+/*
+ * settings and random ast
+ */ 
+struct settings {
+    int max_opearators=5;
+    long max_range=1000;
+    int precision=2;
+    bool is_fractional=false;
+};
+settings global_setting;
+
+ASTNode* random_ast(){
+    int n = rand()%(max_opearator-2)+3;
+    if(is_frarctional){
+
+    }else{
+
+    }
+}
 
 /*
  * Tokenizer
