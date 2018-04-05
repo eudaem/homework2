@@ -200,23 +200,30 @@ bool is_bad_value(const double& x) {
  */
 enum ASTNodeType {TYPE_ADD,TYPE_MINUS,TYPE_MUL,TYPE_DIV,TYPE_POWER,TYPE_FRACTION,TYPE_DOUBLE};
 
+struct ASTNode;
+union u_data {
+    fraction frac;
+    double real;
+    pair<ASTNode*,ASTNode*> node;                
+
+    u_data(){
+        real=0;
+    }
+};
+
 struct ASTNode {
     ASTNodeType type;
-    union {
-        fraction frac;
-        double real;
-        pair<ASTNode*,ASTNode*> node;                
-    } data;
+    u_data data;
 
     ASTNode(){
         type = TYPE_DOUBLE;
         data.real = 0;
     }
 
-    ~ASTNode(){
+    virtual ~ASTNode(){
         if(type!=TYPE_FRACTION&&type!=TYPE_DOUBLE){
-            delete data.node._1;
-            delete data.node._2;
+            delete data.node.first;
+            delete data.node.second;
         }
     }
 };
@@ -234,12 +241,15 @@ struct settings {
 settings global_setting;
 
 ASTNode* random_ast(){
-    int n = rand()%(max_opearator-2)+3;
-    if(is_frarctional){
-
-    }else{
-
+    int n = rand()%(global_setting.max_opearators-2)+3;
+    ASTNode** stack = new ASTNode*[n];
+    for(int i=0;i<n;i++){
+        if(global_setting.is_fractional){
+            stack[i] = new ASTNode();
+            // stack[i] = rand()%global_setting.max_range;
+        }
     }
+    delete[] stack;
 }
 
 /*
