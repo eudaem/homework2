@@ -142,7 +142,7 @@ public:
 void fraction_test() {
 	fraction a(1, 0), b(0, 1), c(2, 3), d(5, 6), e(8, 4), g(18, 9);
 	fraction x;
-    x = a + b;
+	x = a + b;
 	x = a * b;
 	x = a - b;
 	x = a / b;
@@ -198,7 +198,7 @@ bool is_bad_value(const double& x) {
 /*
  * AST
  */
-enum ASTNodeType {TYPE_ADD,TYPE_MINUS,TYPE_MUL,TYPE_DIV,TYPE_POWER,TYPE_FRACTION,TYPE_DOUBLE};
+enum ASTNodeType {TYPE_ADD=0,TYPE_MINUS=1,TYPE_MUL=2,TYPE_DIV=3,TYPE_POWER=4,TYPE_FRACTION=5,TYPE_DOUBLE=6};
 
 struct ASTNode;
 union u_data {
@@ -235,21 +235,54 @@ struct ASTNode {
 struct settings {
     int max_opearators=5;
     long max_range=1000;
+    long max_num = 50;
     int precision=2;
-    bool is_fractional=false;
+    bool has_fraction=true;
+    bool has_real=true;
 };
+enum cal_mode{MODE_FRACTION,MODE_REAL};
 settings global_setting;
 
-ASTNode* random_ast(){
-    int n = rand()%(global_setting.max_opearators-2)+3;
-    ASTNode** stack = new ASTNode*[n];
-    for(int i=0;i<n;i++){
-        if(global_setting.is_fractional){
-            stack[i] = new ASTNode();
-            // stack[i] = rand()%global_setting.max_range;
-        }
+inline ASTNode* random_value(cal_mode mode){
+    ASTNode* node = new ASTNode();
+    switch(mode){
+        case MODE_FRACTION:
+            node->type = TYPE_FRACTION;
+            node->data.frac = fraction(rand()%global_setting.max_num);
+            break;
+
+        case MODE_REAL:
+			// todo: precision
+	        node->type = TYPE_DOUBLE;
+            node->data.real = (rand()/(double)RAND_MAX)*global_setting.max_num;
+            break;
     }
-    delete[] stack;
+    return node;
+}
+
+ASTNode* random_ast(cal_mode mode){
+    int n = rand()%(global_setting.max_opearators-2)+2;
+	ASTNode* num1 = random_value(mode);
+	for(int i=0;i<n;i++){
+		ASTNode* num2 = random_value(mode);
+		if(rand()%2) swap(num1,num2);
+		int r = rand()%17;
+		ASTNode* new_node = new ASTNode();
+
+		if(r==16){
+			if(mode==MODE_FRACTION) num2->data.frac = fraction(rand()%2+1); 
+			else num2->data.real = rand()%2+2;
+
+			new_node->type = TYPE_POWER;
+			new_node->data.node = make_pair(num1,num2);
+		}else{
+			new_node->type = (ASTNodeType)(r/4);			
+			new_node->data.node = make_pair(num1,num2);
+		}
+
+		num1 = new_node;
+	}
+	return num1;
 }
 
 /*
@@ -327,6 +360,96 @@ struct Parser {
         token = Tokenizer(s);
     }
 };
+
+
+ASTNode* calc_asttree(ASTNode* root) {
+	ASTNode* result = new ASTNode();
+	result->type = TYPE_FRACTION;
+	result->data.frac;
+	ASTNode* temp_a = new ASTNode();
+	ASTNode* temp_b = new ASTNode();
+	switch (root->type) {
+	case TYPE_FRACTION:
+		result->type = TYPE_FRACTION;
+		result->data.frac = root->data.frac;
+		break;
+	case TYPE_DOUBLE:
+		result->type = TYPE_DOUBLE;
+		result->data.real = root->data.real;
+	case TYPE_ADD:
+		temp_a = calc_asttree(root->data.node.first);
+		temp_b = calc_asttree(root->data.node.second);
+		if (temp_a->type == TYPE_FRACTION && temp_b->type == TYPE_FRACTION) {
+			result->type = TYPE_FRACTION;
+			result->data.frac = temp_a->data.frac + temp_b->data.frac;
+
+		}
+		else {
+			result->type = TYPE_DOUBLE;
+			result->data.real = temp_a->data.real + temp_b->data.real;
+		}
+		break;
+	case TYPE_MINUS:
+		temp_a = calc_asttree(root->data.node.first);
+		temp_b = calc_asttree(root->data.node.second);
+		if (temp_a->type == TYPE_FRACTION && temp_b->type == TYPE_FRACTION) {
+			result->type = TYPE_FRACTION;
+			result->data.frac = temp_a->data.frac - temp_b->data.frac;
+
+		}
+		else {
+			result->type = TYPE_DOUBLE;
+			result->data.real = temp_a->data.real - temp_b->data.real;
+		}
+		break;
+	case TYPE_MUL:
+		temp_a = calc_asttree(root->data.node.first);
+		temp_b = calc_asttree(root->data.node.second);
+		if (temp_a->type == TYPE_FRACTION && temp_b->type == TYPE_FRACTION) {
+			result->type = TYPE_FRACTION;
+			result->data.frac = temp_a->data.frac * temp_b->data.frac;
+
+		}
+		else {
+			result->type = TYPE_DOUBLE;
+			result->data.real = temp_a->data.real * temp_b->data.real;
+		}
+		break;
+	case TYPE_DIV:
+		temp_a = calc_asttree(root->data.node.first);
+		temp_b = calc_asttree(root->data.node.second);
+		if (temp_a->type == TYPE_FRACTION && temp_b->type == TYPE_FRACTION) {
+			result->type = TYPE_FRACTION;
+			result->data.frac = temp_a->data.frac / temp_b->data.frac;
+
+		}
+		else {
+			result->type = TYPE_DOUBLE;
+			result->data.real = temp_a->data.real / temp_b->data.real;
+		}
+		break;
+	case TYPE_POWER:
+		temp_a = calc_asttree(root->data.node.first);
+		temp_b = calc_asttree(root->data.node.second);
+		if (temp_a->type == TYPE_FRACTION && temp_b->type == TYPE_FRACTION) {
+			result->type = TYPE_FRACTION;
+			result->data.frac = temp_a->data.frac ^ temp_b->data.frac;
+
+		}
+		else {
+			result->type = TYPE_DOUBLE;
+			result->data.real = powl(temp_a->data.real, temp_b->data.real);
+		}
+		break;
+
+
+
+	}
+	return result;
+}
+
+
+
 
 // for unit test
 int main() {
