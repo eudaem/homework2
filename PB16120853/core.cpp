@@ -215,8 +215,8 @@ struct ASTNode {
 
     ~ASTNode(){
         if(type!=TYPE_FRACTION&&type!=TYPE_DOUBLE){
-            delete data.node._1;
-            delete data.node._2;
+            delete data.node.first;
+            delete data.node.second;
         }
     }
 };
