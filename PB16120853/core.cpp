@@ -200,27 +200,20 @@ bool is_bad_value(const double& x) {
  */
 enum ASTNodeType {TYPE_ADD=0,TYPE_MINUS=1,TYPE_MUL=2,TYPE_DIV=3,TYPE_POWER=4,TYPE_FRACTION=5,TYPE_DOUBLE=6};
 
-struct ASTNode;
-union u_data {
-    fraction frac;
-    double real;
-    pair<ASTNode*,ASTNode*> node;                
-
-    u_data(){
-        real=0;
-    }
-};
-
 struct ASTNode {
     ASTNodeType type;
-    u_data data;
+    union {
+        fraction frac;
+        double real;
+        pair<ASTNode*,ASTNode*> node;                
+    } data;
 
     ASTNode(){
         type = TYPE_DOUBLE;
         data.real = 0;
     }
 
-    virtual ~ASTNode(){
+    ~ASTNode(){
         if(type!=TYPE_FRACTION&&type!=TYPE_DOUBLE){
             delete data.node.first;
             delete data.node.second;
@@ -441,9 +434,6 @@ ASTNode* calc_asttree(ASTNode* root) {
 			result->data.real = powl(temp_a->data.real, temp_b->data.real);
 		}
 		break;
-
-
-
 	}
 	return result;
 }
