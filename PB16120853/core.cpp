@@ -200,27 +200,20 @@ bool is_bad_value(const double& x) {
  */
 enum ASTNodeType {TYPE_ADD,TYPE_MINUS,TYPE_MUL,TYPE_DIV,TYPE_POWER,TYPE_FRACTION,TYPE_DOUBLE};
 
-struct ASTNode;
-union u_data {
-    fraction frac;
-    double real;
-    pair<ASTNode*,ASTNode*> node;                
-
-    u_data(){
-        real=0;
-    }
-};
-
 struct ASTNode {
     ASTNodeType type;
-    u_data data;
+    union {
+        fraction frac;
+        double real;
+        pair<ASTNode*,ASTNode*> node;                
+    } data;
 
     ASTNode(){
         type = TYPE_DOUBLE;
         data.real = 0;
     }
 
-    virtual ~ASTNode(){
+    ~ASTNode(){
         if(type!=TYPE_FRACTION&&type!=TYPE_DOUBLE){
             delete data.node.first;
             delete data.node.second;
@@ -241,15 +234,12 @@ struct settings {
 settings global_setting;
 
 ASTNode* random_ast(){
-    int n = rand()%(global_setting.max_opearators-2)+3;
-    ASTNode** stack = new ASTNode*[n];
-    for(int i=0;i<n;i++){
-        if(global_setting.is_fractional){
-            stack[i] = new ASTNode();
-            // stack[i] = rand()%global_setting.max_range;
-        }
+    int n = rand()%(max_opearator-2)+3;
+    if(is_frarctional){
+
+    }else{
+
     }
-    delete[] stack;
 }
 
 /*
@@ -327,6 +317,100 @@ struct Parser {
         token = Tokenizer(s);
     }
 };
+
+
+/*
+ *calculate a ASTtree
+ *TYPE_ADD,TYPE_MINUS,TYPE_MUL,TYPE_DIV,TYPE_POWER,TYPE_FRACTION,TYPE_DOUBLE
+ */
+ASTNode* calc_asttree(ASTNode* root) {
+	ASTNode* result = new ASTNode();
+	result->type = TYPE_FRACTION;
+	result->data.frac;
+	ASTNode* temp_a = new ASTNode();
+	ASTNode* temp_b = new ASTNode();
+	switch (root->type) {
+	case TYPE_FRACTION:
+		result->type = TYPE_FRACTION;
+		result->data.frac = root->data.frac;
+		break;
+	case TYPE_DOUBLE:
+		result->type = TYPE_DOUBLE;
+		result->data.real = root->data.real;
+	case TYPE_ADD:
+		temp_a = calc_asttree(root->data.node.first);
+		temp_b = calc_asttree(root->data.node.second);
+		if (temp_a->type == TYPE_FRACTION && temp_b->type == TYPE_FRACTION) {
+			result->type = TYPE_FRACTION;
+			result->data.frac = temp_a->data.frac + temp_b->data.frac;
+
+		}
+		else {
+			result->type = TYPE_DOUBLE;
+			result->data.real = temp_a->data.real + temp_b->data.real;
+		}
+		break;
+	case TYPE_MINUS:
+		temp_a = calc_asttree(root->data.node.first);
+		temp_b = calc_asttree(root->data.node.second);
+		if (temp_a->type == TYPE_FRACTION && temp_b->type == TYPE_FRACTION) {
+			result->type = TYPE_FRACTION;
+			result->data.frac = temp_a->data.frac - temp_b->data.frac;
+
+		}
+		else {
+			result->type = TYPE_DOUBLE;
+			result->data.real = temp_a->data.real - temp_b->data.real;
+		}
+		break;
+	case TYPE_MUL:
+		temp_a = calc_asttree(root->data.node.first);
+		temp_b = calc_asttree(root->data.node.second);
+		if (temp_a->type == TYPE_FRACTION && temp_b->type == TYPE_FRACTION) {
+			result->type = TYPE_FRACTION;
+			result->data.frac = temp_a->data.frac * temp_b->data.frac;
+
+		}
+		else {
+			result->type = TYPE_DOUBLE;
+			result->data.real = temp_a->data.real * temp_b->data.real;
+		}
+		break;
+	case TYPE_DIV:
+		temp_a = calc_asttree(root->data.node.first);
+		temp_b = calc_asttree(root->data.node.second);
+		if (temp_a->type == TYPE_FRACTION && temp_b->type == TYPE_FRACTION) {
+			result->type = TYPE_FRACTION;
+			result->data.frac = temp_a->data.frac / temp_b->data.frac;
+
+		}
+		else {
+			result->type = TYPE_DOUBLE;
+			result->data.real = temp_a->data.real / temp_b->data.real;
+		}
+		break;
+	case TYPE_POWER:
+		temp_a = calc_asttree(root->data.node.first);
+		temp_b = calc_asttree(root->data.node.second);
+		if (temp_a->type == TYPE_FRACTION && temp_b->type == TYPE_FRACTION) {
+			result->type = TYPE_FRACTION;
+			result->data.frac = temp_a->data.frac ^ temp_b->data.frac;
+
+		}
+		else {
+			result->type = TYPE_DOUBLE;
+			result->data.real = powl(temp_a->data.real , temp_b->data.real);
+		}
+		break;
+	
+
+	
+	}
+	return result;
+}
+
+
+
 
 // for unit test
 int main() {
