@@ -435,6 +435,8 @@ ASTNode* calc_asttree(ASTNode* root) {
 		}
 		break;
 	}
+	delete temp_a;
+	delete temp_b;
 	return result;
 }
 
