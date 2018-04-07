@@ -379,7 +379,18 @@ ASTNode* calc_asttree(ASTNode* root) {
 		}
 		else {
 			result->type = TYPE_DOUBLE;
-			result->data.real = temp_a->data.real + temp_b->data.real;
+			double a, b;
+			if(temp_a->type == TYPE_FRACTION) {
+				a = (double)temp_a->data.frac.numerator / (double)temp_a->data.frac.denominator;
+			} else if(temp_a->type == TYPE_DOUBLE){
+				a = temp_a->data.real;
+			}
+			if(temp_b->type == TYPE_FRACTION) {
+				b = (double)temp_b->data.frac.numerator / (double)temp_b->data.frac.denominator;
+			} else if(temp_b->type == TYPE_DOUBLE){
+				b = temp_b->data.real;
+			}
+			result->data.real = a + b;
 		}
 		break;
 	case TYPE_MINUS:
@@ -392,7 +403,18 @@ ASTNode* calc_asttree(ASTNode* root) {
 		}
 		else {
 			result->type = TYPE_DOUBLE;
-			result->data.real = temp_a->data.real - temp_b->data.real;
+			double a, b;
+			if(temp_a->type == TYPE_FRACTION) {
+				a = (double)temp_a->data.frac.numerator / (double)temp_a->data.frac.denominator;
+			} else if(temp_a->type == TYPE_DOUBLE){
+				a = temp_a->data.real;
+			}
+			if(temp_b->type == TYPE_FRACTION) {
+				b = (double)temp_b->data.frac.numerator / (double)temp_b->data.frac.denominator;
+			} else if(temp_b->type == TYPE_DOUBLE){
+				b = temp_b->data.real;
+			}
+			result->data.real = a - b;
 		}
 		break;
 	case TYPE_MUL:
@@ -405,7 +427,18 @@ ASTNode* calc_asttree(ASTNode* root) {
 		}
 		else {
 			result->type = TYPE_DOUBLE;
-			result->data.real = temp_a->data.real * temp_b->data.real;
+			double a, b;
+			if(temp_a->type == TYPE_FRACTION) {
+				a = (double)temp_a->data.frac.numerator / (double)temp_a->data.frac.denominator;
+			} else if(temp_a->type == TYPE_DOUBLE){
+				a = temp_a->data.real;
+			}
+			if(temp_b->type == TYPE_FRACTION) {
+				b = (double)temp_b->data.frac.numerator / (double)temp_b->data.frac.denominator;
+			} else if(temp_b->type == TYPE_DOUBLE){
+				b = temp_b->data.real;
+			}
+			result->data.real = a * b;
 		}
 		break;
 	case TYPE_DIV:
@@ -418,7 +451,18 @@ ASTNode* calc_asttree(ASTNode* root) {
 		}
 		else {
 			result->type = TYPE_DOUBLE;
-			result->data.real = temp_a->data.real / temp_b->data.real;
+			double a, b;
+			if(temp_a->type == TYPE_FRACTION) {
+				a = (double)temp_a->data.frac.numerator / (double)temp_a->data.frac.denominator;
+			} else if(temp_a->type == TYPE_DOUBLE){
+				a = temp_a->data.real;
+			}
+			if(temp_b->type == TYPE_FRACTION) {
+				b = (double)temp_b->data.frac.numerator / (double)temp_b->data.frac.denominator;
+			} else if(temp_b->type == TYPE_DOUBLE){
+				b = temp_b->data.real;
+			}
+			result->data.real = a / b;
 		}
 		break;
 	case TYPE_POWER:
@@ -431,7 +475,18 @@ ASTNode* calc_asttree(ASTNode* root) {
 		}
 		else {
 			result->type = TYPE_DOUBLE;
-			result->data.real = powl(temp_a->data.real, temp_b->data.real);
+			double a, b;
+			if(temp_a->type == TYPE_FRACTION) {
+				a = (double)temp_a->data.frac.numerator / (double)temp_a->data.frac.denominator;
+			} else if(temp_a->type == TYPE_DOUBLE){
+				a = temp_a->data.real;
+			}
+			if(temp_b->type == TYPE_FRACTION) {
+				b = (double)temp_b->data.frac.numerator / (double)temp_b->data.frac.denominator;
+			} else if(temp_b->type == TYPE_DOUBLE){
+				b = temp_b->data.real;
+			}			
+			result->data.real = powl(a, b);
 		}
 		break;
 	}
