@@ -12,6 +12,7 @@
 #include <string>
 #include <map>
 #include <memory>
+#include <cstdlib>
 #include <cstring>
 #include <cstdio>
 #include <list>
@@ -255,7 +256,7 @@ inline ASTNode* random_value(cal_mode mode){
 
         case MODE_REAL:
             node->type = TYPE_DOUBLE;
-            double base = pow(10,node->precision);
+            double base = pow(10,global_setting.precision);
             node->data.real = floor((rand()/(double)RAND_MAX)*global_setting.max_num*base)/base;
             break;
     }
@@ -276,10 +277,12 @@ ASTNode* random_ast(cal_mode mode){
             else num2->data.real = rand()%2+2;
 
             new_node->type = TYPE_POWER;
-            new_node->data.node = make_pair(num1,num2);
+            new_node->data.node.first = num1;
+            new_node->data.node.second = num2;
         }else{
             new_node->type = (ASTNodeType)(r/4);
-            new_node->data.node = make_pair(num1,num2);
+            new_node->data.node.first = num1;
+            new_node->data.node.second = num2;
         }
 
         num1 = new_node;
@@ -429,8 +432,8 @@ ASTNode* calc_asttree(ASTNode* root) {
     return result;
 }
 
-void ast_output(ASTNode* root){
-    stringstream ss;
+enum ExprType {EXPR_EXPR,EXPR_ADDEXPR,EXPR_MINUSEXPR};
+void ast_output(ASTNode* root, stringstream& ss,ExprType type){
     switch(root->type){
         case TYPE_FRACTION:
             ss<<root->data.frac.numerator;
@@ -439,9 +442,15 @@ void ast_output(ASTNode* root){
             }
             break;
         case TYPE_DOUBLE:
+            ss<<root->data.real;
             break;
-        default:
-
+        case TYPE_ADD:case TYPE_MINUS:
+            if(type==EXPR_MINUSEXPR) ss<<'(';
+            char op = root->type==TYPE_ADD?'+':'-';
+            ast_output(root->data.node.first,ss,EXPR_ADDEXPR);
+            ss<<op;
+            ast_output(root->data.node.second,ss,EXPR_ADDEXPR);
+            if(type==EXPR_MINUSEXPR) ss<<')';
             break;
     }
 }
