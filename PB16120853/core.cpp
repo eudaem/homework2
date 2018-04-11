@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <cassert>
 #include <sstream>
+#include <set>
 
 using namespace std;
 
@@ -138,6 +139,18 @@ public:
     }
 };
 
+ostream& operator << (ostream& out, const fraction& frac){
+    int n = frac.numerator;
+    int d = frac.denominator;
+    int integer = n/d;
+    int f = n%d;
+    out<<integer;
+    if(d!=1){
+        out<<'\''<<f<<'/'<<d;
+    }
+    return out;
+}
+
 /*
  * unit test for fraction
  */
@@ -248,10 +261,17 @@ settings global_setting;
 
 inline ASTNode* random_value(cal_mode mode){
     ASTNode* node = new ASTNode();
-    switch(mode){
+    int m,n;
+    switch(mode) {
         case MODE_FRACTION:
             node->type = TYPE_FRACTION;
-            node->data.frac = fraction(rand()%global_setting.max_num);
+            m = rand()%global_setting.max_num;
+            n = rand()%(m*5);
+            if(global_setting.has_fraction){
+                node->data.frac = fraction(n,m);
+            } else {
+                node->data.frac = fraction(m);
+            }
             break;
 
         case MODE_REAL:
@@ -434,25 +454,53 @@ ASTNode* calc_asttree(ASTNode* root) {
 
 enum ExprType {EXPR_EXPR,EXPR_ADDEXPR,EXPR_MINUSEXPR};
 void ast_output(ASTNode* root, stringstream& ss,ExprType type){
+    char op;
     switch(root->type){
         case TYPE_FRACTION:
-            ss<<root->data.frac.numerator;
-            if(root->data.frac.denominator!=1){
-                ss<<"/"<<root->data.frac.denominator;
-            }
+            ss<<root->data.frac;
             break;
         case TYPE_DOUBLE:
             ss<<root->data.real;
             break;
         case TYPE_ADD:case TYPE_MINUS:
             if(type==EXPR_MINUSEXPR) ss<<'(';
-            char op = root->type==TYPE_ADD?'+':'-';
+            op = root->type==TYPE_ADD?'+':'-';
             ast_output(root->data.node.first,ss,EXPR_ADDEXPR);
-            ss<<op;
+            ss<<' '<<op<<' ';
             ast_output(root->data.node.second,ss,EXPR_ADDEXPR);
             if(type==EXPR_MINUSEXPR) ss<<')';
             break;
+        case TYPE_MUL:case TYPE_POWER:case TYPE_DIV:
+            if(type==TYPE_MUL) op = '*';
+            else if(type==TYPE_DIV) op = '/';
+            else op = '^';
+            ast_output(root->data.node.first,ss,EXPR_MINUSEXPR);
+            ss<<' '<<op<<' ';
+            ast_output(root->data.node.first,ss,EXPR_MINUSEXPR);
+            break;
     }
+}
+
+
+set<pair<string,long long>> ans_set;
+
+void generate(string& question,string& answer){
+    cal_mode mode;
+    if(global_setting.has_real && rand()%2){
+        mode = MODE_REAL;
+    } else {
+        mode = MODE_FRACTION;
+    }
+    ASTNode* node = random_ast(mode);
+    // todo: repeat
+    question.clear();
+    answer.clear();
+    stringstream ss;
+    ss<<calc_asttree(node);
+    ss>>answer;
+    ast_output(node,ss,EXPR_ADDEXPR);
+    ss>>question;
+    return;
 }
 
 // todo
@@ -460,18 +508,10 @@ void Setting(){
 
 }
 
-// Calc()
-map<string,string> table;
-string Calc(){
-
-}
-
 // for unit test
 int main() {
-
-    auto x = random_ast(MODE_REAL);
-    auto res = calc_asttree(x);
-    cout<<res->data.real<<endl;
-
+    string que,ans;
+    generate(que,ans);
+    cout<<que<<" = "<<ans;
     return 0;
 }
