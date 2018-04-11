@@ -332,7 +332,6 @@ ASTNode* calc_asttree(ASTNode* root) {
             if (temp_a->type == TYPE_FRACTION && temp_b->type == TYPE_FRACTION) {
                 result->type = TYPE_FRACTION;
                 result->data.frac = temp_a->data.frac + temp_b->data.frac;
-
             }
             else {
                 result->type = TYPE_DOUBLE;
@@ -452,9 +451,9 @@ ASTNode* calc_asttree(ASTNode* root) {
     return result;
 }
 
-enum ExprType {EXPR_EXPR,EXPR_ADDEXPR,EXPR_MINUSEXPR};
-void ast_output(ASTNode* root, stringstream& ss,ExprType type){
-    char op;
+enum ExprType {EXPR_EXPR,EXPR_ADDEXPR,EXPR_MULEXPR};
+void ast_output(ASTNode* root, stringstream& ss,ExprType expr_type){
+    const char* op;
     switch(root->type){
         case TYPE_FRACTION:
             ss<<root->data.frac;
@@ -463,20 +462,24 @@ void ast_output(ASTNode* root, stringstream& ss,ExprType type){
             ss<<root->data.real;
             break;
         case TYPE_ADD:case TYPE_MINUS:
-            if(type==EXPR_MINUSEXPR) ss<<'(';
-            op = root->type==TYPE_ADD?'+':'-';
+            if(expr_type==EXPR_MULEXPR||expr_type==EXPR_ADDEXPR) ss<<'(';
+            op = root->type==TYPE_ADD?"+":"-";
             ast_output(root->data.node.first,ss,EXPR_ADDEXPR);
             ss<<' '<<op<<' ';
-            ast_output(root->data.node.second,ss,EXPR_ADDEXPR);
-            if(type==EXPR_MINUSEXPR) ss<<')';
+            ast_output(root->data.node.second,ss,EXPR_EXPR);
+            if(expr_type==EXPR_MULEXPR||expr_type==EXPR_ADDEXPR) ss<<')';
             break;
         case TYPE_MUL:case TYPE_POWER:case TYPE_DIV:
-            if(type==TYPE_MUL) op = '*';
-            else if(type==TYPE_DIV) op = '/';
-            else op = '^';
-            ast_output(root->data.node.first,ss,EXPR_MINUSEXPR);
+            if(expr_type==EXPR_MULEXPR) ss<<'(';
+
+            if(root->type==TYPE_MUL) op = "*";
+            else if(root->type==TYPE_DIV) op = "/";
+            else op = "**";
+            ast_output(root->data.node.first,ss,EXPR_EXPR);
             ss<<' '<<op<<' ';
-            ast_output(root->data.node.first,ss,EXPR_MINUSEXPR);
+            ast_output(root->data.node.second,ss,EXPR_MULEXPR);
+
+            if(expr_type==EXPR_MULEXPR) ss<<')';
             break;
     }
 }
@@ -492,21 +495,30 @@ void generate(string& question,string& answer){
         mode = MODE_FRACTION;
     }
     ASTNode* node = random_ast(mode);
+    ASTNode* ret = calc_asttree(node);
+
     // todo: repeat
     question.clear();
     answer.clear();
-    stringstream ss;
-    ss<<calc_asttree(node);
-    ss>>answer;
-    ast_output(node,ss,EXPR_ADDEXPR);
-    ss>>question;
+    stringstream s1,s2;
+    s1.precision(global_setting.precision);
+    ast_output(node,s1,EXPR_EXPR);
+    question = s1.str();
+
+    s2.precision(global_setting.precision);
+    if(ret->type==TYPE_DOUBLE){
+        s2<<ret->data.real;
+    } else {
+        s2<<ret->data.frac;
+    }
+    answer = s2.str();
+
+    delete node;
+    delete ret;
+
     return;
 }
 
-// todo
-void Setting(){
-
-}
 
 // for unit test
 int main() {
