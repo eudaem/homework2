@@ -24,6 +24,8 @@
 #include <sstream>
 #include <set>
 
+#define DEBUG
+
 using namespace std;
 
 /*
@@ -140,6 +142,9 @@ public:
 };
 
 ostream& operator << (ostream& out, const fraction& frac){
+#ifdef DEBUG
+    out<<frac.numerator<<'/'<<frac.denominator;
+#else
     int n = frac.numerator;
     int d = frac.denominator;
     int integer = n/d;
@@ -149,6 +154,8 @@ ostream& operator << (ostream& out, const fraction& frac){
         out<<'\''<<f<<'/'<<d;
     }
     return out;
+
+#endif
 }
 
 /*
@@ -292,7 +299,7 @@ ASTNode* random_ast(cal_mode mode){
         int r = rand()%17;
         ASTNode* new_node = new ASTNode();
 
-        if(r==16){
+        if(r--==16 && (num2->type==TYPE_FRACTION||num2->type==TYPE_FRACTION)){
             if(mode==MODE_FRACTION) num2->data.frac = fraction(rand()%4+1);
             else num2->data.real = rand()%2+2;
 
@@ -311,6 +318,7 @@ ASTNode* random_ast(cal_mode mode){
 }
 
 
+long long hash_value;
 ASTNode* calc_asttree(ASTNode* root) {
     ASTNode* result = new ASTNode();
     result->type = TYPE_FRACTION;
@@ -446,9 +454,16 @@ ASTNode* calc_asttree(ASTNode* root) {
             }
             break;
     }
+    long long value = (long long)(root->type==TYPE_FRACTION ? ( root->data.frac.numerator / (double) root->data.frac.denominator) : root->data.real);
+    hash_value = (hash_value*19260817+value)%(long long)(1e9+7);
     delete temp_a;
     delete temp_b;
     return result;
+}
+
+ASTNode* ast_eval(ASTNode* root){
+    hash_value = 0;
+    return calc_asttree(root);
 }
 
 enum ExprType {EXPR_EXPR,EXPR_ADDEXPR,EXPR_MULEXPR};
@@ -475,6 +490,7 @@ void ast_output(ASTNode* root, stringstream& ss,ExprType expr_type){
             if(root->type==TYPE_MUL) op = "*";
             else if(root->type==TYPE_DIV) op = "/";
             else op = "**";
+
             ast_output(root->data.node.first,ss,EXPR_EXPR);
             ss<<' '<<op<<' ';
             ast_output(root->data.node.second,ss,EXPR_MULEXPR);
@@ -485,7 +501,7 @@ void ast_output(ASTNode* root, stringstream& ss,ExprType expr_type){
 }
 
 
-set<pair<string,long long>> ans_set;
+set<pair<long long,string>> ans_set;
 
 void generate(string& question,string& answer){
     cal_mode mode;
@@ -494,16 +510,13 @@ void generate(string& question,string& answer){
     } else {
         mode = MODE_FRACTION;
     }
+    question.clear();
+    answer.clear();
+
     ASTNode* node = random_ast(mode);
     ASTNode* ret = calc_asttree(node);
 
-    // todo: repeat
-    question.clear();
-    answer.clear();
     stringstream s1,s2;
-    s1.precision(global_setting.precision);
-    ast_output(node,s1,EXPR_EXPR);
-    question = s1.str();
 
     s2.precision(global_setting.precision);
     if(ret->type==TYPE_DOUBLE){
@@ -513,17 +526,42 @@ void generate(string& question,string& answer){
     }
     answer = s2.str();
 
+    // todo: repeat
+    pair<long long,string> p = make_pair(hash_value,answer);
+    if(ans_set.find(p)!=ans_set.end()){
+        generate(question,answer);
+        delete node;
+        delete ret;
+        return;
+    } else {
+        ans_set.insert(p);
+    }
+
+    s1.precision(global_setting.precision);
+    ast_output(node,s1,EXPR_EXPR);
+    question = s1.str();
+
+
+
     delete node;
     delete ret;
-
     return;
 }
 
 
 // for unit test
 int main() {
-    string que,ans;
-    generate(que,ans);
-    cout<<que<<" = "<<ans;
+    // todo: random
+    vector<string> anss;
+    for(int i=0;i<10;i++){
+        string que,ans;
+        generate(que,ans);
+        cout<<"eval('"<<que<<"')\n";
+        anss.push_back(ans);
+    }
+    cout<<"answers:\n";
+    for(auto x:anss){
+        cout<<x<<endl;
+    }
     return 0;
 }
