@@ -209,6 +209,7 @@ bool is_bad_value(const fraction& x) {
 }
 
 bool is_bad_value(const double& x) {
+    // todo: error
     if (isnan(x) || isfinite(x) || isinf(x)) {
         return true;
     }
@@ -528,7 +529,13 @@ void generate(string& question,string& answer){
 
     // todo: repeat
     pair<long long,string> p = make_pair(hash_value,answer);
-    if(ans_set.find(p)!=ans_set.end()){
+    if((ret->type==TYPE_DOUBLE && is_bad_value(ret->data.real))){
+        cout<<ret->data.real<<":"<<is_bad_value(ret->data.real)<<endl;
+    }
+    if(
+            (ans_set.find(p)!=ans_set.end()) ||
+            (ret->type==TYPE_DOUBLE && is_bad_value(ret->data.real)) ||
+            (ret->type==TYPE_FRACTION && is_bad_value(ret->data.frac))) {
         generate(question,answer);
         delete node;
         delete ret;
@@ -540,8 +547,6 @@ void generate(string& question,string& answer){
     s1.precision(global_setting.precision);
     ast_output(node,s1,EXPR_EXPR);
     question = s1.str();
-
-
 
     delete node;
     delete ret;
