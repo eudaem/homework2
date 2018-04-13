@@ -611,7 +611,7 @@ int main() {
 	for (int i = 0; i<1000; i++) {
 		string que, ans;
 		generate(que, ans);
-		cout << "print(float('%.2f' % eval('" << que << "')) - ("<<ans<<"))\n";
+		cout << "assert(float('%.2f' % eval('" << que << "')) == ("<<ans<<"))\n";
 	}
 	return 0;
 }
