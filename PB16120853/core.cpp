@@ -534,6 +534,8 @@ void generate(string& question, string& answer) {
 	ASTNode* ret = calc_asttree(node);
 
 	stringstream s1, s2;
+	s1.setf(std::ios::fixed,std:: ios::floatfield);
+	s2.setf(std::ios::fixed,std:: ios::floatfield);
 
 	s2.precision(global_setting.precision);
 	if (ret->type == TYPE_DOUBLE) {
