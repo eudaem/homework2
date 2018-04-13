@@ -304,15 +304,14 @@ ASTNode* random_ast(cal_mode mode) {
 		int r = rand() % 17;
 		ASTNode* new_node = new ASTNode();
 
-		if (r-- == 16 && (num2->type == TYPE_FRACTION || num2->type == TYPE_FRACTION)) {
+		if (r-- == 16 && (num2->type == TYPE_FRACTION || num2->type == TYPE_FRACTION) && (num1->type!=TYPE_POWER)) {
 			if (mode == MODE_FRACTION) num2->data.frac = fraction(rand() % 4 + 1);
 			else num2->data.real = rand() % 2 + 2;
 
 			new_node->type = TYPE_POWER;
 			new_node->data.node.first = num1;
 			new_node->data.node.second = num2;
-		}
-		else {
+		} else {
 			new_node->type = (ASTNodeType)(r / 4);
 			new_node->data.node.first = num1;
 			new_node->data.node.second = num2;
@@ -512,7 +511,7 @@ void ast_output_expr(ASTNode* root,stringstream& ss) {
 
 void ast_output_addexpr(ASTNode* root,stringstream& ss) {
 	switch (root->type) {
-	case TYPE_MUL:case TYPE_POWER:case TYPE_DIV:
+	case TYPE_MUL:case TYPE_DIV:
 		ast_output_addexpr(root->data.node.first, ss);
 		ss << (root->type == TYPE_MUL?" * ":" / ");
 		ast_output_mulexpr(root->data.node.second, ss);
@@ -612,7 +611,7 @@ void generate(string& question, string& answer) {
 // for unit test
 int main() {
 	// todo: random
-	for (int i = 0; i<1000; i++) {
+	for (int i = 0; i<10000; i++) {
 		string que, ans;
 		generate(que, ans);
 		cout << "assert(" << i << ">=0 and (float('%.2f' % eval('" << que << "')) == ("<<ans<<")))\n";
