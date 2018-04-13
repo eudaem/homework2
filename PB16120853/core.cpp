@@ -615,7 +615,7 @@ int main() {
 	for (int i = 0; i<1000; i++) {
 		string que, ans;
 		generate(que, ans);
-		cout << "assert(float('%.2f' % eval('" << que << "')) == ("<<ans<<"))\n";
+		cout << "assert(" << i << ">=0 and (float('%.2f' % eval('" << que << "')) == ("<<ans<<")))\n";
 	}
 	return 0;
 }
