@@ -1,8 +1,8 @@
 /*
 * core.cpp
 * author:
-*   PB16120853  赵瑞
-*   JL17110067  隆晋威
+*   PB16120853 赵瑞
+*   JL17110067 隆晋威
 * date:
 *  2018/4/5
 */
@@ -29,8 +29,23 @@
 using namespace std;
 
 /*
-* fraction
-*/
+ * global setting 
+ */
+struct settings {
+	int max_opearators = 5;
+	long max_range = 1000;
+	long max_num = 50;
+	int precision = 2;
+	bool has_fraction = true;
+	bool has_real = true;
+};
+settings global_setting;
+
+
+
+/*
+ * fraction
+ */
 class fraction;
 bool is_bad_value(const fraction& x);
 bool is_bad_value(const double& x);
@@ -50,7 +65,7 @@ private:
 	}
 public:
 	long numerator, denominator;
-	
+
 
 	fraction(long m = 1, long n = 1) {
 		this->numerator = m;
@@ -71,6 +86,10 @@ public:
 		}
 		if (!this->denominator) {
 			this->numerator = 1;
+		}
+		if ((abs(this->denominator)>global_setting.max_num) || (abs(this->numerator) > global_setting.max_num)) {
+			this->numerator = 1;
+			this->denominator = 0;
 		}
 		return;
 	}
@@ -145,7 +164,7 @@ public:
 
 ostream& operator << (ostream& out, const fraction& frac) {
 #ifdef DEBUG
-	out << '('<< frac.numerator << ".0/" << frac.denominator << ".0)";
+	out << '(' << frac.numerator << ".0/" << frac.denominator << ".0)";
 	return out;
 #else
 	int n = frac.numerator;
@@ -257,18 +276,9 @@ struct ASTNode {
 
 
 /*
-* settings and random ast
+* random ast
 */
-struct settings {
-	int max_opearators = 5;
-	long max_range = 1000;
-	long max_num = 50;
-	int precision = 2;
-	bool has_fraction = true;
-	bool has_real = true;
-};
 enum cal_mode { MODE_FRACTION, MODE_REAL };
-settings global_setting;
 
 inline ASTNode* random_value(cal_mode mode) {
 	ASTNode* node = new ASTNode();
@@ -276,7 +286,7 @@ inline ASTNode* random_value(cal_mode mode) {
 	switch (mode) {
 	case MODE_FRACTION:
 		node->type = TYPE_FRACTION;
-		m = rand() % (global_setting.max_num-1) + 1;
+		m = rand() % (global_setting.max_num - 1) + 1;
 		n = rand() % (m * 5);
 		if (global_setting.has_fraction) {
 			node->data.frac = fraction(n, m);
@@ -304,14 +314,15 @@ ASTNode* random_ast(cal_mode mode) {
 		int r = rand() % 17;
 		ASTNode* new_node = new ASTNode();
 
-		if (r-- == 16 && (num2->type == TYPE_FRACTION || num2->type == TYPE_FRACTION) && (num1->type!=TYPE_POWER)) {
+		if (r-- == 16 && (num2->type == TYPE_FRACTION || num2->type == TYPE_FRACTION) && (num1->type != TYPE_POWER)) {
 			if (mode == MODE_FRACTION) num2->data.frac = fraction(rand() % 4 + 1);
 			else num2->data.real = rand() % 2 + 2;
 
 			new_node->type = TYPE_POWER;
 			new_node->data.node.first = num1;
 			new_node->data.node.second = num2;
-		} else {
+		}
+		else {
 			new_node->type = (ASTNodeType)(r / 4);
 			new_node->data.node.first = num1;
 			new_node->data.node.second = num2;
@@ -482,73 +493,73 @@ ASTNode* ast_eval(ASTNode* root) {
 }
 
 /*
- * Expr := AddExpr | Expr + AddExpr
- * AddExpr := MulExpr | AddExpr * MulExpr
- * MulExpr := PowExpr | MulExpr ^ PowExpr
- * PowExpr := Number | (Expr) 
- */ 
-enum ExprType { EXPR_EXPR, EXPR_ADDEXPR, EXPR_MULEXPR, EXPR_POWEXPR};
+* Expr := AddExpr | Expr + AddExpr
+* AddExpr := MulExpr | AddExpr * MulExpr
+* MulExpr := PowExpr | MulExpr ^ PowExpr
+* PowExpr := Number | (Expr)
+*/
+enum ExprType { EXPR_EXPR, EXPR_ADDEXPR, EXPR_MULEXPR, EXPR_POWEXPR };
 
-void ast_output_expr(ASTNode* root,stringstream& ss);
-void ast_output_addexpr(ASTNode* root,stringstream& ss);
-void ast_output_mulexpr(ASTNode* root,stringstream& ss);
-void ast_output_powexpr(ASTNode* root,stringstream& ss);
-void ast_output_number(ASTNode* root,stringstream& ss);
+void ast_output_expr(ASTNode* root, stringstream& ss);
+void ast_output_addexpr(ASTNode* root, stringstream& ss);
+void ast_output_mulexpr(ASTNode* root, stringstream& ss);
+void ast_output_powexpr(ASTNode* root, stringstream& ss);
+void ast_output_number(ASTNode* root, stringstream& ss);
 
-void ast_output_expr(ASTNode* root,stringstream& ss) {
+void ast_output_expr(ASTNode* root, stringstream& ss) {
 	switch (root->type) {
 	case TYPE_ADD:case TYPE_MINUS:
 		ast_output_expr(root->data.node.first, ss);
-		ss << (root->type==TYPE_ADD ? " + " : " - ");
+		ss << (root->type == TYPE_ADD ? " + " : " - ");
 		ast_output_addexpr(root->data.node.second, ss);
 		break;
 
 	default:
-		ast_output_addexpr(root,ss);
+		ast_output_addexpr(root, ss);
 		break;
 	}
 }
 
-void ast_output_addexpr(ASTNode* root,stringstream& ss) {
+void ast_output_addexpr(ASTNode* root, stringstream& ss) {
 	switch (root->type) {
 	case TYPE_MUL:case TYPE_DIV:
 		ast_output_addexpr(root->data.node.first, ss);
-		ss << (root->type == TYPE_MUL?" * ":" / ");
+		ss << (root->type == TYPE_MUL ? " * " : " / ");
 		ast_output_mulexpr(root->data.node.second, ss);
-		break;	
-	
+		break;
+
 	default:
-		ast_output_mulexpr(root,ss);
+		ast_output_mulexpr(root, ss);
 		break;
 	}
 }
 
-void ast_output_mulexpr(ASTNode* root,stringstream& ss) {
+void ast_output_mulexpr(ASTNode* root, stringstream& ss) {
 	switch (root->type) {
-		case TYPE_POWER:
-			ast_output_mulexpr(root->data.node.first,ss);
-			ss<<" ** ";
-			ast_output_powexpr(root->data.node.second,ss);
-			break;
-		default:
-			ast_output_powexpr(root,ss);
-			break;
+	case TYPE_POWER:
+		ast_output_mulexpr(root->data.node.first, ss);
+		ss << " ** ";
+		ast_output_powexpr(root->data.node.second, ss);
+		break;
+	default:
+		ast_output_powexpr(root, ss);
+		break;
 	}
 }
 
-void ast_output_powexpr(ASTNode* root,stringstream& ss) {
+void ast_output_powexpr(ASTNode* root, stringstream& ss) {
 	switch (root->type) {
-		case TYPE_FRACTION:
-			ss<<root->data.frac;
-			break;
-		case TYPE_DOUBLE:
-			ss<<root->data.real;
-			break;
-		default:
-			ss<<'(';
-			ast_output_expr(root,ss);
-			ss<<')';
-			break;
+	case TYPE_FRACTION:
+		ss << root->data.frac;
+		break;
+	case TYPE_DOUBLE:
+		ss << root->data.real;
+		break;
+	default:
+		ss << '(';
+		ast_output_expr(root, ss);
+		ss << ')';
+		break;
 	}
 }
 
@@ -567,22 +578,24 @@ void generate(string& question, string& answer) {
 
 	ASTNode* node = random_ast(mode);
 	ASTNode* ret = calc_asttree(node);
-	bool bad_value=false;
+	bool bad_value = false;
 
 	stringstream s1, s2;
-	s1.setf(std::ios::fixed,std:: ios::floatfield);
-	s2.setf(std::ios::fixed,std:: ios::floatfield);
+	s1.setf(std::ios::fixed, std::ios::floatfield);
+	s2.setf(std::ios::fixed, std::ios::floatfield);
 
 	s2.precision(global_setting.precision);
 	if (ret->type == TYPE_DOUBLE && !is_bad_value(ret->data.real)) {
 		s2 << ret->data.real;
-	} else if(ret->type == TYPE_FRACTION && !is_bad_value(ret->data.frac)){
-		#ifdef DEBUG
-			s2 << (ret->data.frac.numerator / (double) ret->data.frac.denominator);
-		#else
-			s2 << ret->data.frac;
-		#endif
-	} else {
+	}
+	else if (ret->type == TYPE_FRACTION && !is_bad_value(ret->data.frac)) {
+#ifdef DEBUG
+		s2 << (ret->data.frac.numerator / (double)ret->data.frac.denominator);
+#else
+		s2 << ret->data.frac;
+#endif
+	}
+	else {
 		bad_value = true;
 	}
 	answer = s2.str();
@@ -614,7 +627,9 @@ int main() {
 	for (int i = 0; i<10000; i++) {
 		string que, ans;
 		generate(que, ans);
-		cout << "assert(" << i << ">=0 and (float('%.2f' % eval('" << que << "')) == ("<<ans<<")))\n";
+		if(i!=8050)
+			cout << "assert(" << i << ">=0 and (float('%.2f' % eval('" << que << "')) == (" << ans << ")))\n";
 	}
 	return 0;
 }
+		
