@@ -210,7 +210,7 @@ bool is_bad_value(const fraction& x) {
 
 bool is_bad_value(const double& x) {
     // todo: error
-    if (isnan(x) || isfinite(x) || isinf(x)) {
+    if (isnan(x) || isinf(x)) {
         return true;
     }
     else {
