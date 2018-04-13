@@ -145,7 +145,7 @@ public:
 
 ostream& operator << (ostream& out, const fraction& frac) {
 #ifdef DEBUG
-	out << frac.numerator << '/' << frac.denominator;
+	out << '('<< frac.numerator << ".0/" << frac.denominator << ".0)";
 	return out;
 #else
 	int n = frac.numerator;
@@ -276,7 +276,7 @@ inline ASTNode* random_value(cal_mode mode) {
 	switch (mode) {
 	case MODE_FRACTION:
 		node->type = TYPE_FRACTION;
-		m = rand() % global_setting.max_num;
+		m = rand() % (global_setting.max_num-1) + 1;
 		n = rand() % (m * 5);
 		if (global_setting.has_fraction) {
 			node->data.frac = fraction(n, m);
@@ -482,40 +482,70 @@ ASTNode* ast_eval(ASTNode* root) {
 	return calc_asttree(root);
 }
 
-enum ExprType { EXPR_EXPR, EXPR_ADDEXPR, EXPR_MULEXPR };
-void ast_output(ASTNode* root, stringstream& ss, ExprType expr_type) {
+/*
+ * Expr := AddExpr | Expr + AddExpr
+ * AddExpr := MulExpr | AddExpr * MulExpr
+ * MulExpr := Number | (Expr) 
+ */ 
+enum ExprType { EXPR_EXPR, EXPR_ADDEXPR, EXPR_MULEXPR};
+
+void ast_output_expr(ASTNode* root,stringstream& ss);
+void ast_output_addexpr(ASTNode* root,stringstream& ss);
+void ast_output_mulexpr(ASTNode* root,stringstream& ss);
+void ast_output_number(ASTNode* root,stringstream& ss);
+
+void ast_output_expr(ASTNode* root,stringstream& ss) {
 	const char* op;
+
 	switch (root->type) {
-	case TYPE_FRACTION:
-		ss << root->data.frac;
-		break;
-	case TYPE_DOUBLE:
-		ss << root->data.real;
-		break;
 	case TYPE_ADD:case TYPE_MINUS:
-		if (expr_type == EXPR_MULEXPR || expr_type == EXPR_ADDEXPR) ss << '(';
 		op = root->type == TYPE_ADD ? "+" : "-";
-		ast_output(root->data.node.first, ss, EXPR_ADDEXPR);
+
+		ast_output_expr(root->data.node.first, ss);
 		ss << ' ' << op << ' ';
-		ast_output(root->data.node.second, ss, EXPR_EXPR);
-		if (expr_type == EXPR_MULEXPR || expr_type == EXPR_ADDEXPR) ss << ')';
+		ast_output_addexpr(root->data.node.second, ss);
 		break;
-	case TYPE_MUL:case TYPE_POWER:case TYPE_DIV:
-		if (expr_type == EXPR_MULEXPR) ss << '(';
 
-		if (root->type == TYPE_MUL) op = "*";
-		else if (root->type == TYPE_DIV) op = "/";
-		else op = "**";
-
-		ast_output(root->data.node.first, ss, EXPR_EXPR);
-		ss << ' ' << op << ' ';
-		ast_output(root->data.node.second, ss, EXPR_MULEXPR);
-
-		if (expr_type == EXPR_MULEXPR) ss << ')';
+	default:
+		ast_output_addexpr(root,ss);
 		break;
 	}
 }
 
+void ast_output_addexpr(ASTNode* root,stringstream& ss) {
+	const char* op;
+	switch (root->type) {
+	case TYPE_MUL:case TYPE_POWER:case TYPE_DIV:
+		if (root->type == TYPE_MUL) op = "*";
+		else if (root->type == TYPE_DIV) op = "/";
+		else op = "**";
+
+		ast_output_addexpr(root->data.node.first, ss);
+		ss << ' ' << op << ' ';
+		ast_output_mulexpr(root->data.node.second, ss);
+		break;	
+	
+	default:
+		ast_output_mulexpr(root,ss);
+		break;
+	}
+}
+
+void ast_output_mulexpr(ASTNode* root,stringstream& ss) {
+	switch (root->type) {
+		case TYPE_FRACTION:
+			ss<<root->data.frac;
+			break;
+		case TYPE_DOUBLE:
+			ss<<root->data.real;
+			break;
+		default:
+			ss<<'(';
+			ast_output_expr(root,ss);
+			ss<<')';
+			break;
+	}
+}
 
 set<pair<long long, string>> ans_set;
 
@@ -532,29 +562,28 @@ void generate(string& question, string& answer) {
 
 	ASTNode* node = random_ast(mode);
 	ASTNode* ret = calc_asttree(node);
+	bool bad_value=false;
 
 	stringstream s1, s2;
 	s1.setf(std::ios::fixed,std:: ios::floatfield);
 	s2.setf(std::ios::fixed,std:: ios::floatfield);
 
 	s2.precision(global_setting.precision);
-	if (ret->type == TYPE_DOUBLE) {
+	if (ret->type == TYPE_DOUBLE && !is_bad_value(ret->data.real)) {
 		s2 << ret->data.real;
-	}
-	else {
-		s2 << ret->data.frac;
+	} else if(ret->type == TYPE_FRACTION && !is_bad_value(ret->data.frac)){
+		#ifdef DEBUG
+			s2 << (ret->data.frac.numerator / (double) ret->data.frac.denominator);
+		#else
+			s2 << ret->data.frac;
+		#endif
+	} else {
+		bad_value = true;
 	}
 	answer = s2.str();
 
-	// todo: repeat
 	pair<long long, string> p = make_pair(hash_value, answer);
-	if ((ret->type == TYPE_DOUBLE && is_bad_value(ret->data.real))) {
-		cout << ret->data.real << ":" << is_bad_value(ret->data.real) << endl;
-	}
-	if (
-		(ans_set.find(p) != ans_set.end()) ||
-		(ret->type == TYPE_DOUBLE && is_bad_value(ret->data.real)) ||
-		(ret->type == TYPE_FRACTION && is_bad_value(ret->data.frac))) {
+	if (bad_value || ans_set.find(p) != ans_set.end()) {
 		generate(question, answer);
 		delete node;
 		delete ret;
@@ -564,8 +593,10 @@ void generate(string& question, string& answer) {
 		ans_set.insert(p);
 	}
 
+
+
 	s1.precision(global_setting.precision);
-	ast_output(node, s1, EXPR_EXPR);
+	ast_output_expr(node, s1);
 	question = s1.str();
 
 	delete node;
@@ -577,16 +608,10 @@ void generate(string& question, string& answer) {
 // for unit test
 int main() {
 	// todo: random
-	vector<string> anss;
-	for (int i = 0; i<10; i++) {
+	for (int i = 0; i<1000; i++) {
 		string que, ans;
 		generate(que, ans);
-		cout << "eval('" << que << "')\n";
-		anss.push_back(ans);
-	}
-	cout << "answers:\n";
-	for (auto x : anss) {
-		cout << x << endl;
+		cout << "print(float('%.2f' % eval('" << que << "')) - ("<<ans<<"))\n";
 	}
 	return 0;
 }
