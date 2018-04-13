@@ -485,24 +485,22 @@ ASTNode* ast_eval(ASTNode* root) {
 /*
  * Expr := AddExpr | Expr + AddExpr
  * AddExpr := MulExpr | AddExpr * MulExpr
- * MulExpr := Number | (Expr) 
+ * MulExpr := PowExpr | MulExpr ^ PowExpr
+ * PowExpr := Number | (Expr) 
  */ 
-enum ExprType { EXPR_EXPR, EXPR_ADDEXPR, EXPR_MULEXPR};
+enum ExprType { EXPR_EXPR, EXPR_ADDEXPR, EXPR_MULEXPR, EXPR_POWEXPR};
 
 void ast_output_expr(ASTNode* root,stringstream& ss);
 void ast_output_addexpr(ASTNode* root,stringstream& ss);
 void ast_output_mulexpr(ASTNode* root,stringstream& ss);
+void ast_output_powexpr(ASTNode* root,stringstream& ss);
 void ast_output_number(ASTNode* root,stringstream& ss);
 
 void ast_output_expr(ASTNode* root,stringstream& ss) {
-	const char* op;
-
 	switch (root->type) {
 	case TYPE_ADD:case TYPE_MINUS:
-		op = root->type == TYPE_ADD ? "+" : "-";
-
 		ast_output_expr(root->data.node.first, ss);
-		ss << ' ' << op << ' ';
+		ss << (root->type==TYPE_ADD ? " + " : " - ");
 		ast_output_addexpr(root->data.node.second, ss);
 		break;
 
@@ -513,15 +511,10 @@ void ast_output_expr(ASTNode* root,stringstream& ss) {
 }
 
 void ast_output_addexpr(ASTNode* root,stringstream& ss) {
-	const char* op;
 	switch (root->type) {
 	case TYPE_MUL:case TYPE_POWER:case TYPE_DIV:
-		if (root->type == TYPE_MUL) op = "*";
-		else if (root->type == TYPE_DIV) op = "/";
-		else op = "**";
-
 		ast_output_addexpr(root->data.node.first, ss);
-		ss << ' ' << op << ' ';
+		ss << (root->type == TYPE_MUL?" * ":" / ");
 		ast_output_mulexpr(root->data.node.second, ss);
 		break;	
 	
@@ -532,6 +525,19 @@ void ast_output_addexpr(ASTNode* root,stringstream& ss) {
 }
 
 void ast_output_mulexpr(ASTNode* root,stringstream& ss) {
+	switch (root->type) {
+		case TYPE_POWER:
+			ast_output_mulexpr(root->data.node.first,ss);
+			ss<<" ** ";
+			ast_output_powexpr(root->data.node.second,ss);
+			break;
+		default:
+			ast_output_powexpr(root,ss);
+			break;
+	}
+}
+
+void ast_output_powexpr(ASTNode* root,stringstream& ss) {
 	switch (root->type) {
 		case TYPE_FRACTION:
 			ss<<root->data.frac;
@@ -592,8 +598,6 @@ void generate(string& question, string& answer) {
 	else {
 		ans_set.insert(p);
 	}
-
-
 
 	s1.precision(global_setting.precision);
 	ast_output_expr(node, s1);
