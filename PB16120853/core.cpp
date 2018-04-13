@@ -624,11 +624,10 @@ void generate(string& question, string& answer) {
 // for unit test
 int main() {
 	// todo: random
-	for (int i = 0; i<10000; i++) {
+	for (int i = 0; i<50000; i++) {
 		string que, ans;
 		generate(que, ans);
-		if(i!=8050)
-			cout << "assert(" << i << ">=0 and (float('%.2f' % eval('" << que << "')) == (" << ans << ")))\n";
+		cout << "assert(" << i << ">=0 and abs((" << que << ") - (" << ans << "))<5e-2)\n";
 	}
 	return 0;
 }
