@@ -50,6 +50,8 @@ class fraction;
 bool is_bad_value(const fraction& x);
 bool is_bad_value(const double& x);
 
+
+
 class fraction {
 private:
     long gcd(long u, long v) {
@@ -128,6 +130,10 @@ public:
     fraction operator / (const fraction& x) const {
         if (is_bad_value(*this))return *this;
         if (is_bad_value(x))return x;
+        fraction stan_bad_value(1, 0);
+        if(x.numerator == 0){
+            return stan_bad_value;
+        }
         fraction result;
         result.numerator = this->numerator * x.denominator;
         result.denominator = this->denominator * x.numerator;
