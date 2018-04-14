@@ -507,7 +507,10 @@ ASTNode* calc_asttree(ASTNode* root) {
 		if (result->data.frac.denominator > global_setting.max_range || result->data.frac.numerator < 0) {
 			result->data.frac.numerator = 1;
 			result->data.frac.denominator = 0;
-		}	
+		}
+	}
+	else if (result->type == TYPE_DOUBLE) {
+		result->data.real = INFINITY;
 	}
 	return result;
 }
