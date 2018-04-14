@@ -1,3 +1,6 @@
+#define CORE15_API
+#define TEST
+
 /*
 * core.cpp
 * author:
@@ -15,10 +18,8 @@
 #include <sstream>
 #include <set>
 
-
 using namespace std;
 
-#define DEBUG
 /*
 * global setting
 */
@@ -29,6 +30,8 @@ struct settings {
 	int precision = 2;
 	bool has_fraction = true;
 	bool has_real = true;
+	bool has_mul_div = true;
+	bool has_power = true;
 };
 settings global_setting;
 
@@ -154,8 +157,8 @@ public:
 		long index = x.numerator;
 
 		fraction result;
-		result.numerator = powl(this->numerator, abs(index));
-		result.denominator = powl(this->denominator, abs(index));
+		result.numerator = (long) powl(this->numerator, abs(index));
+		result.denominator = (long) powl(this->denominator, abs(index));
 		if (index < 0) {
 			long temp;
 			temp = result.numerator;
@@ -319,7 +322,7 @@ inline ASTNode* random_value(cal_mode mode) {
 }
 
 ASTNode* random_ast(cal_mode mode) {
-	int n = rand() % (global_setting.max_opearators - 2) + 2;
+	int n = global_setting.max_opearators<=1?1:rand() % (global_setting.max_opearators - 2) + 2;
 	ASTNode* num1 = random_value(mode);
 	for (int i = 0; i<n; i++) {
 		ASTNode* num2 = random_value(mode);
@@ -328,7 +331,7 @@ ASTNode* random_ast(cal_mode mode) {
 		ASTNode* new_node = new ASTNode();
 
 
-		if (r-- == 16 && (num2->type == TYPE_FRACTION || num2->type == TYPE_FRACTION) && (num1->type != TYPE_POWER)) {
+		if (r-- == 16 && (num2->type == TYPE_FRACTION || num2->type == TYPE_FRACTION) && (num1->type != TYPE_POWER) && global_setting.has_power) {
 			if (mode == MODE_FRACTION) num2->data.frac = fraction(rand() % 4 + 1);
 			else num2->data.real = rand() % 2 + 2;
 
@@ -337,11 +340,15 @@ ASTNode* random_ast(cal_mode mode) {
 			new_node->data.node.second = num2;
 		}
 		else {
-			new_node->type = (ASTNodeType)(r / 4);
-			if (mode == MODE_FRACTION && !global_setting.has_fraction) {
-				r = rand() % 10;
-				if (r-- == 9) new_node->type = TYPE_DIV;
-				else new_node->type = (ASTNodeType)(r / 3);
+			if(global_setting.has_mul_div){
+				new_node->type = (ASTNodeType)(r / 4);
+				if (mode == MODE_FRACTION && !global_setting.has_fraction) {
+					r = rand() % 10;
+					if (r-- == 9) new_node->type = TYPE_DIV;
+					else new_node->type = (ASTNodeType)(r / 3);
+				}
+			} else {
+				new_node->type = (ASTNodeType)(r / 8);
 			}
 			new_node->data.node.first = num1;
 			new_node->data.node.second = num2;
@@ -566,7 +573,13 @@ void ast_output_mulexpr(ASTNode* root, stringstream& ss) {
 	switch (root->type) {
 	case TYPE_POWER:
 		ast_output_mulexpr(root->data.node.first, ss);
-		ss << " ** ";
+		#ifdef DEBUG
+			ss << " ** ";
+		#elif defined(TEST)
+			ss << " ** ";
+		#else		
+			ss << "^";
+		#endif
 		ast_output_powexpr(root->data.node.second, ss);
 		break;
 	default:
@@ -593,22 +606,26 @@ void ast_output_powexpr(ASTNode* root, stringstream& ss) {
 
 set<long long> ans_set;
 
-void setting(
+CORE15_API void set_setting(
 	int max_opearators,
 	long max_range,
 	int precision,
 	int has_fraction,
-	int has_real){
+	int has_real,
+	int has_mul_div,
+	int has_power){
 
 	if(max_opearators!=-1) global_setting.max_opearators = max_opearators;
 	if(max_range !=-1) global_setting.max_range = max_range;
 	if(precision !=-1) global_setting.precision = precision;
-	if(has_fraction !=-1) global_setting.has_fraction = has_fraction;
-	if(has_real!=-1) global_setting.has_real = has_real;
+	if(has_fraction !=-1) global_setting.has_fraction = has_fraction!=0;
+	if(has_real!=-1) global_setting.has_real = has_real!=0;
+	if(has_mul_div!=-1) global_setting.has_mul_div = has_mul_div!=0;
+	if(has_power!=-1) global_setting.has_power = has_power!=0;
 	global_setting.max_num = max_range/10;
 }
 
-void generate(string& question, string& answer) {
+CORE15_API void generate(string* question, string* answer) {
 	cal_mode mode;
 	if (global_setting.has_real && rand() % 12 == 0) {
 		mode = MODE_REAL;
@@ -616,8 +633,8 @@ void generate(string& question, string& answer) {
 	else {
 		mode = MODE_FRACTION;
 	}
-	question.clear();
-	answer.clear();
+	question->clear();
+	answer->clear();
 
 	ASTNode* node = random_ast(mode);
 	ASTNode* ret = calc_asttree(node);
@@ -641,7 +658,7 @@ void generate(string& question, string& answer) {
 	else {
 		bad_value = true;
 	}
-	answer = s2.str();
+	*answer = s2.str();
 
 	if (bad_value || ans_set.find(hash_value) != ans_set.end()) {
 		generate(question, answer);
@@ -655,7 +672,7 @@ void generate(string& question, string& answer) {
 
 	s1.precision(global_setting.precision);
 	ast_output_expr(node, s1);
-	question = s1.str();
+	*question = s1.str();
 
 	delete node;
 	delete ret;
@@ -678,17 +695,17 @@ int main() {
 			file = fopen(ss.str().c_str(), "w");
 		}
 		string que, ans;
-		generate(que, ans);
+		generate(&que, &ans);
 		fprintf(file, "assert(%lld>=0 and abs((%s)-(%s))<5e-2)\n", i, que.c_str(), ans.c_str());
 	}
 	fclose(file);
 	return 0;
 }
-#else
+#elif defined(TEST)
 int main() {
 	for (long long i = 0; i<2000; i++) {
 		string que, ans;
-		generate(que, ans);
+		generate(&que, &ans);
 		cout << que << " = " << ans << endl;
 	}
 	return 0;
