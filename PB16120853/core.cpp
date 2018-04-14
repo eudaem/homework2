@@ -23,7 +23,6 @@
 
 using namespace std;
 
-#define DEBUG
 
 /*
  * global setting
@@ -33,8 +32,8 @@ struct settings {
 	long max_num = 50;			// max_range / 20
 	long max_range = 1000;
 	int precision = 2;
-	bool has_fraction = true;
-	bool has_real = true;
+	bool has_fraction = false;
+	bool has_real = false;
 };
 settings global_setting;
 
@@ -331,6 +330,7 @@ ASTNode* random_ast(cal_mode mode) {
 		int r = rand() % 17;
 		ASTNode* new_node = new ASTNode();
 
+				
 		if (r-- == 16 && (num2->type == TYPE_FRACTION || num2->type == TYPE_FRACTION) && (num1->type != TYPE_POWER)) {
 			if (mode == MODE_FRACTION) num2->data.frac = fraction(rand() % 4 + 1);
 			else num2->data.real = rand() % 2 + 2;
@@ -338,9 +338,13 @@ ASTNode* random_ast(cal_mode mode) {
 			new_node->type = TYPE_POWER;
 			new_node->data.node.first = num1;
 			new_node->data.node.second = num2;
-		}
-		else {
+		} else {
 			new_node->type = (ASTNodeType)(r / 4);
+			if(mode==MODE_FRACTION && !global_setting.has_fraction) {
+				r = rand()%10;
+				if(r-- == 9) new_node->type = TYPE_DIV;
+				else new_node->type = (ASTNodeType)(r/3);
+			}
 			new_node->data.node.first = num1;
 			new_node->data.node.second = num2;
 		}
