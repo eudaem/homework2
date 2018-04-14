@@ -8,14 +8,10 @@
 */
 
 #include <iostream>
-#include <vector>
 #include <string>
-#include <map>
 #include <memory>
 #include <cstdlib>
-#include <cstring>
 #include <cstdio>
-#include <list>
 #include <tuple>
 #include <limits.h>
 #include <cmath>
@@ -24,16 +20,18 @@
 #include <sstream>
 #include <set>
 
-#define DEBUG
 
 using namespace std;
 
+#define DEBUG
+
 /*
-* global setting
-*/
+ * global setting
+ */
 struct settings {
 	int max_opearators = 5;
-	long max_num = 1000;
+	long max_num = 50;			// max_range / 20
+	long max_range = 1000;
 	int precision = 2;
 	bool has_fraction = true;
 	bool has_real = true;
@@ -41,10 +39,9 @@ struct settings {
 settings global_setting;
 
 
-
 /*
-* fraction
-*/
+ * fraction
+ */
 class fraction;
 bool is_bad_value(const fraction& x);
 bool is_bad_value(const double& x);
@@ -76,7 +73,7 @@ public:
 
 	void reduction() {
 		long x = gcd(this->numerator, this->denominator);
-		if ((llabs(this->denominator) > global_setting.max_num) || (llabs(this->numerator) > global_setting.max_num)) {
+		if ((llabs(this->denominator) > global_setting.max_range) || (llabs(this->numerator) > global_setting.max_range)) {
 			this->numerator = 1;
 			this->denominator = 0;
 			x = 1;
@@ -93,7 +90,7 @@ public:
 		if (!this->denominator) {
 			this->numerator = 1;
 		}
-		if ((abs(this->denominator)>global_setting.max_num) || (abs(this->numerator) > global_setting.max_num)) {
+		if ((abs(this->denominator)>global_setting.max_range) || (abs(this->numerator) > global_setting.max_range)) {
 			this->numerator = 1;
 			this->denominator = 0;
 		}
@@ -181,13 +178,19 @@ ostream& operator << (ostream& out, const fraction& frac) {
 	out << '(' << frac.numerator << ".0/" << frac.denominator << ".0)";
 	return out;
 #else
-	int n = frac.numerator;
-	int d = frac.denominator;
-	int integer = n / d;
-	int f = n % d;
-	out << integer;
-	if (d != 1) {
-		out << '\'' << f << '/' << d;
+	long long n = frac.numerator;
+	long long d = frac.denominator;
+	long long integer = n / d;
+	long long f = n % d;
+
+	if(f==0){
+		out<<integer;
+	}else{
+		if(integer){
+			out<< integer << '\'' << f << '/' << d;
+		} else {
+			out<< f << '/' << d;
+		}
 	}
 	return out;
 
@@ -581,7 +584,7 @@ set<pair<long long, string>> ans_set;
 
 void generate(string& question, string& answer) {
 	cal_mode mode;
-	if (global_setting.has_real && rand() % 2) {
+	if (global_setting.has_real && rand() % 12==0) {
 		mode = MODE_REAL;
 	}
 	else {
@@ -628,13 +631,14 @@ void generate(string& question, string& answer) {
 	s1.precision(global_setting.precision);
 	ast_output_expr(node, s1);
 	question = s1.str();
-
+	
 	delete node;
 	delete ret;
 	return;
 }
 
 
+#ifdef DEBUG
 // for unit test
 int main() {
 	// todo: random
@@ -655,3 +659,13 @@ int main() {
 	fclose(file);
     return 0;
 }
+#else
+int main(){
+    for (long long  i = 0; i<2000; i++) {
+        string que, ans;
+        generate(que, ans);
+        cout<<que<<" = "<<ans<<endl;
+    }
+    return 0;
+}
+#endif
