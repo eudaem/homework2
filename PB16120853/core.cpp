@@ -381,7 +381,7 @@ ASTNode* calc_asttree(ASTNode* root) {
                 else if (temp_b->type == TYPE_DOUBLE) {
                     b = temp_b->data.real;
                 }
-                result->data.real = is_bad_value(a)||is_bad_value(b) ? 1.0/0.0 : (a+b);
+                result->data.real = is_bad_value(a) || is_bad_value(b) ? INFINITY : (a + b);
             }
             break;
         case TYPE_MINUS:
@@ -407,7 +407,7 @@ ASTNode* calc_asttree(ASTNode* root) {
                 else if (temp_b->type == TYPE_DOUBLE) {
                     b = temp_b->data.real;
                 }
-                result->data.real = is_bad_value(a)||is_bad_value(b) ? 1.0/0.0 : (a-b);
+                result->data.real = is_bad_value(a) || is_bad_value(b) ? INFINITY : (a - b);
             }
             break;
         case TYPE_MUL:
@@ -433,7 +433,7 @@ ASTNode* calc_asttree(ASTNode* root) {
                 else if (temp_b->type == TYPE_DOUBLE) {
                     b = temp_b->data.real;
                 }
-                result->data.real = is_bad_value(a)||is_bad_value(b) ? 1.0/0.0 : (a*b);
+                result->data.real = is_bad_value(a) || is_bad_value(b) ? INFINITY : (a*b);
             }
             break;
         case TYPE_DIV:
@@ -459,7 +459,7 @@ ASTNode* calc_asttree(ASTNode* root) {
                 else if (temp_b->type == TYPE_DOUBLE) {
                     b = temp_b->data.real;
                 }
-                result->data.real = is_bad_value(a)||is_bad_value(b)||fabs(b)<=1e-3 ? 1.0/0.0 : (a/b);
+                result->data.real = is_bad_value(a) || is_bad_value(b) || fabs(b) <= 1e-3 ? INFINITY : (a / b);
             }
             break;
         case TYPE_POWER:
@@ -485,7 +485,7 @@ ASTNode* calc_asttree(ASTNode* root) {
                 else if (temp_b->type == TYPE_DOUBLE) {
                     b = temp_b->data.real;
                 }
-                result->data.real = is_bad_value(a)||is_bad_value(b) ? 1.0/0.0 : powl(a,b);
+                result->data.real = is_bad_value(a) || is_bad_value(b) ? INFINITY : powl(a, b);
             }
             break;
     }
