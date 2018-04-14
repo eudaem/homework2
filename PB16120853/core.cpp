@@ -25,8 +25,8 @@ using namespace std;
 
 
 /*
- * global setting
- */
+* global setting
+*/
 struct settings {
 	int max_opearators = 5;
 	long max_num = 50;			// max_range / 20
@@ -39,8 +39,8 @@ settings global_setting;
 
 
 /*
- * fraction
- */
+* fraction
+*/
 class fraction;
 bool is_bad_value(const fraction& x);
 bool is_bad_value(const double& x);
@@ -182,13 +182,15 @@ ostream& operator << (ostream& out, const fraction& frac) {
 	long long integer = n / d;
 	long long f = n % d;
 
-	if(f==0){
-		out<<integer;
-	}else{
-		if(integer){
-			out<< integer << '\'' << f << '/' << d;
-		} else {
-			out<< f << '/' << d;
+	if (f == 0) {
+		out << integer;
+	}
+	else {
+		if (integer) {
+			out << integer << '\'' << f << '/' << d;
+		}
+		else {
+			out << f << '/' << d;
 		}
 	}
 	return out;
@@ -330,7 +332,7 @@ ASTNode* random_ast(cal_mode mode) {
 		int r = rand() % 17;
 		ASTNode* new_node = new ASTNode();
 
-				
+
 		if (r-- == 16 && (num2->type == TYPE_FRACTION || num2->type == TYPE_FRACTION) && (num1->type != TYPE_POWER)) {
 			if (mode == MODE_FRACTION) num2->data.frac = fraction(rand() % 4 + 1);
 			else num2->data.real = rand() % 2 + 2;
@@ -338,12 +340,13 @@ ASTNode* random_ast(cal_mode mode) {
 			new_node->type = TYPE_POWER;
 			new_node->data.node.first = num1;
 			new_node->data.node.second = num2;
-		} else {
+		}
+		else {
 			new_node->type = (ASTNodeType)(r / 4);
-			if(mode==MODE_FRACTION && !global_setting.has_fraction) {
-				r = rand()%10;
-				if(r-- == 9) new_node->type = TYPE_DIV;
-				else new_node->type = (ASTNodeType)(r/3);
+			if (mode == MODE_FRACTION && !global_setting.has_fraction) {
+				r = rand() % 10;
+				if (r-- == 9) new_node->type = TYPE_DIV;
+				else new_node->type = (ASTNodeType)(r / 3);
 			}
 			new_node->data.node.first = num1;
 			new_node->data.node.second = num2;
@@ -505,6 +508,12 @@ ASTNode* calc_asttree(ASTNode* root) {
 	hash_value = (hash_value * 19260817 + value) % (long long)(1e9 + 7);
 	delete temp_a;
 	delete temp_b;
+	if (result->type == TYPE_FRACTION) {
+		if (result->data.frac.denominator > global_setting.max_range || result->data.frac.numerator < 0) {
+			result->data.frac.numerator = 1;
+			result->data.frac.denominator = 0;
+		}	
+	}
 	return result;
 }
 
@@ -588,7 +597,7 @@ set<pair<long long, string>> ans_set;
 
 void generate(string& question, string& answer) {
 	cal_mode mode;
-	if (global_setting.has_real && rand() % 12==0) {
+	if (global_setting.has_real && rand() % 12 == 0) {
 		mode = MODE_REAL;
 	}
 	else {
@@ -635,7 +644,7 @@ void generate(string& question, string& answer) {
 	s1.precision(global_setting.precision);
 	ast_output_expr(node, s1);
 	question = s1.str();
-	
+
 	delete node;
 	delete ret;
 	return;
@@ -649,27 +658,27 @@ int main() {
 	FILE* file = NULL;
 	const long long test_num = 1000000;
 	const long long test_groups = 100;
-    for (long long  i = 0; i<test_num; i++) {
-		if(i%(test_num/test_groups)==0){
+	for (long long i = 0; i<test_num; i++) {
+		if (i % (test_num / test_groups) == 0) {
 			stringstream ss;
 			ss << "test" << i / (test_num / test_groups) << ".py";
 			if (file) fclose(file);
 			file = fopen(ss.str().c_str(), "w");
 		}
-        string que, ans;
-        generate(que, ans);
-		fprintf(file,"assert(%lld>=0 and abs((%s)-(%s))<5e-2)\n",i,que.c_str(),ans.c_str());
-    }
+		string que, ans;
+		generate(que, ans);
+		fprintf(file, "assert(%lld>=0 and abs((%s)-(%s))<5e-2)\n", i, que.c_str(), ans.c_str());
+	}
 	fclose(file);
-    return 0;
+	return 0;
 }
 #else
-int main(){
-    for (long long  i = 0; i<2000; i++) {
-        string que, ans;
-        generate(que, ans);
-        cout<<que<<" = "<<ans<<endl;
-    }
-    return 0;
+int main() {
+	for (long long i = 0; i<2000; i++) {
+		string que, ans;
+		generate(que, ans);
+		cout << que << " = " << ans << endl;
+	}
+	return 0;
 }
 #endif
