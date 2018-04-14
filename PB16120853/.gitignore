@@ -1,5 +1,4 @@
 .vscode/
 test*
 *.out
-*.py
 !test.py
