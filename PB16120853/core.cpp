@@ -18,7 +18,7 @@
 
 using namespace std;
 
-
+#define DEBUG
 /*
 * global setting
 */
@@ -27,8 +27,8 @@ struct settings {
 	long max_num = 100;			// max_range / 10
 	long max_range = 1000;
 	int precision = 2;
-	bool has_fraction = false;
-	bool has_real = false;
+	bool has_fraction = true;
+	bool has_real = true;
 };
 settings global_setting;
 
@@ -665,7 +665,7 @@ void generate(string& question, string& answer) {
 int main() {
 	// todo: random
 	FILE* file = NULL;
-	const long long test_num = 1000000;
+	const long long test_num = 100000;
 	const long long test_groups = 100;
 	for (long long i = 0; i<test_num; i++) {
 		if (i % (test_num / test_groups) == 0) {
