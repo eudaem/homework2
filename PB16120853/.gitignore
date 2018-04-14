@@ -2,4 +2,4 @@
 test*
 *.out
 *.py
-!test.sh
+!test.py
