@@ -591,17 +591,17 @@ void ast_output_powexpr(ASTNode* root, stringstream& ss) {
 set<long long> ans_set;
 
 void setting(
-	int max_opearators = 5,
-	long max_range = 1000,
-	int precision = 2,
-	bool has_fraction = true,
-	bool has_real = true){
+	int max_opearators,
+	long max_range,
+	int precision,
+	int has_fraction,
+	int has_real){
 
-	global_setting.max_opearators = max_opearators;
-	global_setting.max_range = max_range;
-	global_setting.precision = precision;
-	global_setting.has_fraction = has_fraction;
-	global_setting.has_real = has_real;
+	if(max_opearators!=-1) global_setting.max_opearators = max_opearators;
+	if(max_range !=-1) global_setting.max_range = max_range;
+	if(precision !=-1) global_setting.precision = precision;
+	if(has_fraction !=-1) global_setting.has_fraction = has_fraction;
+	if(has_real!=-1) global_setting.has_real = has_real;
 	global_setting.max_num = max_range/10;
 }
 
