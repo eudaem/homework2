@@ -634,9 +634,9 @@ void generate(string& question, string& answer) {
 int main() {
     // todo: random
 	FILE* file = NULL;
-	const int test_num = 1000000;
-	const int test_groups = 100;
-    for (int i = 0; i<test_num; i++) {
+	const long long test_num = 1000000;
+	const long long test_groups = 100;
+    for (long long  i = 0; i<test_num; i++) {
 		if(i%(test_num/test_groups)==0){
 			stringstream ss;
 			ss<<"test"<<i/(test_num/test_groups)<<".py";
@@ -645,9 +645,8 @@ int main() {
 		}
         string que, ans;
         generate(que, ans);
-		fprintf(file,"assert(%d>=0 and abs((%s)-(%s))<5e-2)\n",i,que.c_str(),ans.c_str());
+		fprintf(file,"assert(%lld>=0 and abs((%s)-(%s))<5e-2)\n",i,que.c_str(),ans.c_str());
     }
 	fclose(file);
     return 0;
 }
-		
