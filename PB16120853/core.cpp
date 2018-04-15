@@ -1,6 +1,3 @@
-#define CORE15_API
-#define TEST
-
 /*
 * core.cpp
 * author:
@@ -9,6 +6,8 @@
 * date:
 *  2018/4/5
 */
+#define CORE15_API
+#define DEBUG
 
 #include <iostream>
 #include <string>
@@ -157,8 +156,8 @@ public:
 		long index = x.numerator;
 
 		fraction result;
-		result.numerator = (long) powl(this->numerator, abs(index));
-		result.denominator = (long) powl(this->denominator, abs(index));
+		result.numerator = (long)powl(this->numerator, abs(index));
+		result.denominator = (long)powl(this->denominator, abs(index));
 		if (index < 0) {
 			long temp;
 			temp = result.numerator;
@@ -322,7 +321,7 @@ inline ASTNode* random_value(cal_mode mode) {
 }
 
 ASTNode* random_ast(cal_mode mode) {
-	int n = global_setting.max_opearators<=1?1:rand() % (global_setting.max_opearators - 2) + 2;
+	int n = global_setting.max_opearators <= 1 ? 1 : rand() % (global_setting.max_opearators - 1) + 1;
 	ASTNode* num1 = random_value(mode);
 	for (int i = 0; i<n; i++) {
 		ASTNode* num2 = random_value(mode);
@@ -340,14 +339,15 @@ ASTNode* random_ast(cal_mode mode) {
 			new_node->data.node.second = num2;
 		}
 		else {
-			if(global_setting.has_mul_div){
+			if (global_setting.has_mul_div) {
 				new_node->type = (ASTNodeType)(r / 4);
 				if (mode == MODE_FRACTION && !global_setting.has_fraction) {
 					r = rand() % 10;
 					if (r-- == 9) new_node->type = TYPE_DIV;
 					else new_node->type = (ASTNodeType)(r / 3);
 				}
-			} else {
+			}
+			else {
 				new_node->type = (ASTNodeType)(r / 8);
 			}
 			new_node->data.node.first = num1;
@@ -511,12 +511,12 @@ ASTNode* calc_asttree(ASTNode* root) {
 	delete temp_a;
 	delete temp_b;
 	if (result->type == TYPE_FRACTION) {
-		if (result->data.frac.denominator > global_setting.max_range || result->data.frac.numerator < 0) {
+		if ( (result->data.frac.denominator > global_setting.max_range*100 || result->data.frac.numerator < 0) || 
+			 (result->data.frac.denominator != 1 && !global_setting.has_fraction)) {
 			result->data.frac.numerator = 1;
 			result->data.frac.denominator = 0;
-		}
-	}
-	else if (result->type == TYPE_DOUBLE) {
+		} 
+	} else if (result->type == TYPE_DOUBLE && (result->data.real <0|| result->data.real>global_setting.max_range*10)) {
 		result->data.real = INFINITY;
 	}
 	return result;
@@ -573,13 +573,13 @@ void ast_output_mulexpr(ASTNode* root, stringstream& ss) {
 	switch (root->type) {
 	case TYPE_POWER:
 		ast_output_mulexpr(root->data.node.first, ss);
-		#ifdef DEBUG
-			ss << " ** ";
-		#elif defined(TEST)
-			ss << " ** ";
-		#else		
-			ss << "^";
-		#endif
+#ifdef DEBUG
+		ss << " ** ";
+#elif defined(TEST)
+		ss << " ** ";
+#else		
+		ss << "^";
+#endif
 		ast_output_powexpr(root->data.node.second, ss);
 		break;
 	default:
@@ -613,21 +613,24 @@ CORE15_API void set_setting(
 	int has_fraction,
 	int has_real,
 	int has_mul_div,
-	int has_power){
+	int has_power) {
 
-	if(max_opearators!=-1) global_setting.max_opearators = max_opearators;
-	if(max_range !=-1) global_setting.max_range = max_range;
-	if(precision !=-1) global_setting.precision = precision;
-	if(has_fraction !=-1) global_setting.has_fraction = has_fraction!=0;
-	if(has_real!=-1) global_setting.has_real = has_real!=0;
-	if(has_mul_div!=-1) global_setting.has_mul_div = has_mul_div!=0;
-	if(has_power!=-1) global_setting.has_power = has_power!=0;
-	global_setting.max_num = max_range/10;
+	if (max_opearators != -1) global_setting.max_opearators = max_opearators;
+	if (max_range != -1) global_setting.max_range = max_range;
+	if (precision != -1) global_setting.precision = precision;
+	if (has_fraction != -1) global_setting.has_fraction = has_fraction != 0;
+	if (has_real != -1) global_setting.has_real = has_real != 0;
+	if (has_mul_div != -1) global_setting.has_mul_div = has_mul_div != 0;
+	if (has_power != -1) global_setting.has_power = has_power != 0;
+	global_setting.max_num = max_range / 10;
 }
 
+#ifdef TEST
+int c1=0,c2=0;
+#endif
 CORE15_API void generate(string* question, string* answer) {
 	cal_mode mode;
-	if (global_setting.has_real && rand() % 12 == 0) {
+	if (global_setting.has_real && rand() % 200 == 0) {
 		mode = MODE_REAL;
 	}
 	else {
@@ -637,7 +640,7 @@ CORE15_API void generate(string* question, string* answer) {
 	answer->clear();
 
 	ASTNode* node = random_ast(mode);
-	ASTNode* ret = calc_asttree(node);
+	ASTNode* ret = ast_eval(node);
 	bool bad_value = false;
 
 	stringstream s1, s2;
@@ -676,6 +679,12 @@ CORE15_API void generate(string* question, string* answer) {
 
 	delete node;
 	delete ret;
+
+#ifdef TEST
+	if(mode==MODE_FRACTION) c1++;
+	else c2++;
+#endif
+
 	return;
 }
 
@@ -703,11 +712,13 @@ int main() {
 }
 #elif defined(TEST)
 int main() {
+	srand(time(NULL));
 	for (long long i = 0; i<2000; i++) {
 		string que, ans;
 		generate(&que, &ans);
 		cout << que << " = " << ans << endl;
 	}
+	cout<<c1<<" "<<c2<<endl;
 	return 0;
 }
 #endif
