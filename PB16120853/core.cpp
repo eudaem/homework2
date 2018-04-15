@@ -27,10 +27,10 @@ struct settings {
 	long max_num = 100;			// max_range / 10
 	long max_range = 1000;
 	int precision = 2;
-	bool has_fraction = false;
+	bool has_fraction = true;
 	bool has_real = true;
-	bool has_mul_div = false;
-	bool has_power = false;
+	bool has_mul_div = true;
+	bool has_power = true;
 };
 settings global_setting;
 
@@ -622,7 +622,7 @@ CORE15_API void set_setting(
 	if (has_real != -1) global_setting.has_real = has_real != 0;
 	if (has_mul_div != -1) global_setting.has_mul_div = has_mul_div != 0;
 	if (has_power != -1) global_setting.has_power = has_power != 0;
-	global_setting.max_num = max_range / 10;
+	global_setting.max_num = max_range>=20 ? max_range / 10 : max_range;
 }
 
 #ifdef TEST
@@ -630,7 +630,7 @@ int c1=0,c2=0;
 #endif
 CORE15_API void generate(string* question, string* answer) {
 	cal_mode mode;
-	int magic = global_setting.has_fraction ? 200 : 3;
+	int magic = global_setting.has_fraction ? 32 : 3;
 	if (global_setting.has_real && rand() % magic == 0) {
 		mode = MODE_REAL;
 	} else{
@@ -713,7 +713,7 @@ int main() {
 #elif defined(TEST)
 int main() {
 	srand(time(NULL));
-	for (long long i = 0; i<20; i++) {
+	for (long long i = 0; i<200; i++) {
 		string que, ans;
 		generate(&que, &ans);
 		cout << que << " = " << ans << endl;
