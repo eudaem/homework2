@@ -29,8 +29,8 @@ struct settings {
 	int precision = 2;
 	bool has_fraction = false;
 	bool has_real = true;
-	bool has_mul_div = true;
-	bool has_power = true;
+	bool has_mul_div = false;
+	bool has_power = false;
 };
 settings global_setting;
 
@@ -713,7 +713,7 @@ int main() {
 #elif defined(TEST)
 int main() {
 	srand(time(NULL));
-	for (long long i = 0; i<2000; i++) {
+	for (long long i = 0; i<20; i++) {
 		string que, ans;
 		generate(&que, &ans);
 		cout << que << " = " << ans << endl;
