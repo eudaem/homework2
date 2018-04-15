@@ -1,0 +1,21 @@
+﻿生成启动时间为 2018/4/15 19:52:01。
+     1>项目“C:\Users\nicekingwei\Documents\Visual Studio 2015\Projects\Core15\Core15.vcxproj”在节点 2 上(Build 个目标)。
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _USRDLL /D CORE15_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Release\\" /Fd"Release\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt Core15.cpp
+         Core15.cpp
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\nicekingwei\Documents\Visual Studio 2015\Projects\Core15\Release\Core15.dll" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\nicekingwei\Documents\Visual Studio 2015\Projects\Core15\Release\Core15.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG:incremental /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\nicekingwei\Documents\Visual Studio 2015\Projects\Core15\Release\Core15.lib" /MACHINE:X86 /SAFESEH /DLL Release\Core15.obj
+         Release\dllmain.obj
+         Release\stdafx.obj
+           正在创建库 C:\Users\nicekingwei\Documents\Visual Studio 2015\Projects\Core15\Release\Core15.lib 和对象 C:\Users\nicekingwei\Documents\Visual Studio 2015\Projects\Core15\Release\Core15.exp
+         正在生成代码
+         2 of 292 functions ( 0.7%) were compiled, the rest were copied from previous compilation.
+           0 functions were new in current compilation
+           0 functions had inline decision re-evaluated but remain unchanged
+         已完成代码的生成
+         Core15.vcxproj -> C:\Users\nicekingwei\Documents\Visual Studio 2015\Projects\Core15\Release\Core15.dll
+     1>已完成生成项目“C:\Users\nicekingwei\Documents\Visual Studio 2015\Projects\Core15\Core15.vcxproj”(Build 个目标)的操作。
+
+已成功生成。
+
+已用时间 00:00:01.78

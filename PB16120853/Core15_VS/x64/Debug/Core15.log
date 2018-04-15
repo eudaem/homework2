@@ -1,0 +1,15 @@
+﻿生成启动时间为 2018/4/15 19:52:05。
+     1>项目“C:\Users\nicekingwei\Documents\Visual Studio 2015\Projects\Core15\Core15.vcxproj”在节点 2 上(Build 个目标)。
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\CL.exe /c /ZI /nologo /W3 /WX- /Od /D _DEBUG /D _WINDOWS /D _USRDLL /D CORE15_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"x64\Debug\\" /Fd"x64\Debug\vc140.pdb" /Gd /TP /errorReport:prompt Core15.cpp
+         Core15.cpp
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\nicekingwei\Documents\Visual Studio 2015\Projects\Core15\x64\Debug\Core15.dll" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"C:\Users\nicekingwei\Documents\Visual Studio 2015\Projects\Core15\x64\Debug\Core15.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\nicekingwei\Documents\Visual Studio 2015\Projects\Core15\x64\Debug\Core15.lib" /MACHINE:X64 /DLL x64\Debug\Core15.obj
+         x64\Debug\dllmain.obj
+         x64\Debug\stdafx.obj
+         Core15.vcxproj -> C:\Users\nicekingwei\Documents\Visual Studio 2015\Projects\Core15\x64\Debug\Core15.dll
+     1>已完成生成项目“C:\Users\nicekingwei\Documents\Visual Studio 2015\Projects\Core15\Core15.vcxproj”(Build 个目标)的操作。
+
+已成功生成。
+
+已用时间 00:00:01.61
