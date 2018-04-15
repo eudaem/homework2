@@ -7,7 +7,7 @@
 *  2018/4/5
 */
 #define CORE15_API
-#define DEBUG
+#define TEST
 
 #include <iostream>
 #include <string>
@@ -27,7 +27,7 @@ struct settings {
 	long max_num = 100;			// max_range / 10
 	long max_range = 1000;
 	int precision = 2;
-	bool has_fraction = true;
+	bool has_fraction = false;
 	bool has_real = true;
 	bool has_mul_div = true;
 	bool has_power = true;
@@ -630,10 +630,10 @@ int c1=0,c2=0;
 #endif
 CORE15_API void generate(string* question, string* answer) {
 	cal_mode mode;
-	if (global_setting.has_real && rand() % 200 == 0) {
+	int magic = global_setting.has_fraction ? 200 : 3;
+	if (global_setting.has_real && rand() % magic == 0) {
 		mode = MODE_REAL;
-	}
-	else {
+	} else{
 		mode = MODE_FRACTION;
 	}
 	question->clear();
